@@ -40,6 +40,7 @@
     >
       {{ gameMessage }}
     </p>
+    <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
   </div>
 </template>
 
