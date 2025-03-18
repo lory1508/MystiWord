@@ -1,14 +1,19 @@
 <template>
   <div 
-    class="border-2 text-center pt-1 rounded-lg w-14 h-16 custom-font"
+    v-if="active"
+    class="h-16 pt-1 text-center border-2 rounded-lg w-14 custom-font"
     :class="acceptedStatuses[props.status]"  
   >
     <span 
-      v-if="status == 'correct'"
       class="text-5xl"
     >
       {{ letter }}
     </span>
+  </div>
+  <div 
+    v-else
+    class="h-16 pt-1 text-center border-2 rounded-lg w-14 custom-font bg-zinc-300 text-zinc-800 border-zinc-200"
+  >  
   </div>
 </template>
 
@@ -21,6 +26,10 @@ const props = defineProps({
     validator: (value) => {
       return ['correct', 'wrongPlace', 'default'].includes(value)
     },
+  },
+  active: {
+    type: Boolean,
+    default: false,
   }
 })
 
@@ -33,6 +42,6 @@ const acceptedStatuses = {
 
 <style>
 .custom-font {
-  font-family: "Delius Unicase", cursive;
+  font-family: "Outfit", sans-serif;
 }
 </style>
