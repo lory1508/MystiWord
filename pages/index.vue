@@ -44,7 +44,7 @@
 </template>
 
 <script setup>
-const wordToGuess = ref("peace");
+const wordToGuess = ref("PEACE");
 const guesses = ref([...Array(6)].map(() => Array(5).fill("")));
 const currentGuess = ref("");
 const guessIndex = ref(0);
