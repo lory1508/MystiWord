@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center">
+  <div class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
     <img src="/logo.png" class="w-40" />
-    <div class="flex flex-col items-center justify-center gap-2 mb-4">
+    <div class="flex flex-col items-center justify-center gap-2">
       <div 
         v-for="(row, rowIndex) in guesses" 
         :key="rowIndex" 
@@ -17,14 +17,19 @@
       </div>
     </div>
     <div class="flex flex-col items-center justify-center w-full gap-2">
-      <input 
-        v-model="currentGuess" 
-        maxlength="5" 
-        placeholder="Type your guess" 
-        @keyup.enter="submitGuess" 
-        :disabled="gameOver" 
-        class="w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300" 
-      />
+      <div class="relative w-full">
+        <input 
+          v-model="currentGuess" 
+          maxlength="5" 
+          placeholder="Type your guess" 
+          @keyup.enter="submitGuess" 
+          :disabled="gameOver" 
+          class="w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300" 
+        />
+        <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-2 top-1/2">
+          {{ currentGuess.length }}/5
+        </span>
+      </div>
       <button 
         @click="submitGuess" 
         :disabled="gameOver" 
