@@ -39,34 +39,90 @@
       </button>
       <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
     </div>
-    <p v-if="gameMessage" class="mt-4 text-lg font-semibold">{{ gameMessage }}</p>
+  </div>
+  <div v-if="gameMessage" class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
+    <p class="mt-4 text-lg font-semibold">
+      <div>
+        {{ gameMessage }}
+      </div>
+    </p>
+    <div class="flex flex-col justify-start gap-2 p-2 mt-2 font-sans rounded-md text-start bg-zinc-100">
+      <ol>
+        <li v-for="(definition, index) in definitions" :key="`definition_${index}`" class="flex flex-col gap-2 mb-8">
+          <span class="font-mono">
+            - {{ definition.definition }}</span>
+          <span class="text-gray-500">{{ definition.example }}</span>
+          <div v-if="definition.synonyms.length">
+            <span class="font-bold">Synonyms:</span>
+            <span>{{ definition.synonyms.join(", ") }}</span>
+          </div>
+        </li>
+      </ol>
+    </div>
   </div>
 </template>
 
 <script setup>
-const wordToGuess = ref("PEACE");
+const WORD_LENGTH = 5;
+const API_DEFINITIONS = "https://api.dictionaryapi.dev/api/v2/entries/en/";
+const API_WORD_GENERATOR = "https://random-word-api.vercel.app/api";
+
+const wordToGuess = ref("");
 const guesses = ref([...Array(6)].map(() => Array(5).fill("")));
 const currentGuess = ref("");
 const guessIndex = ref(0);
 const gameMessage = ref("");
 const gameOver = ref(false);
+const definitions = ref([]);
+const invalidGuess = ref(false);
 
-const submitGuess = () => {
-  if (currentGuess.value.length !== 5 || gameOver.value) return;
-  
-  const guessArray = currentGuess.value.toUpperCase().split("");
-  guesses.value[guessIndex.value] = [...guessArray];
-  
-  if (currentGuess.value.toUpperCase() === wordToGuess.value) {
-    gameMessage.value = "🎉 Congratulations! You guessed the word!";
-    gameOver.value = true;
-  } else if (guessIndex.value === 5) {
-    gameMessage.value = `😞 Game over! The word was ${wordToGuess.value}.`;
-    gameOver.value = true;
+watch(() => currentGuess.value, (value) => {
+  if(invalidGuess.value) {
+    invalidGuess.value = false;
+    gameMessage.value = "";
   }
-  
-  guessIndex.value++;
-  currentGuess.value = "";
+});
+
+watch(() => gameOver.value, async() => {
+  try{
+    if (gameOver.value) {
+      const response = await fetch(`${API_DEFINITIONS}${wordToGuess.value}`);
+      const data = await response.json();
+      definitions.value = data[0].meanings[0].definitions.slice(0, 3);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+const submitGuess = async() => {
+  if (currentGuess.value.length !== 5 || gameOver.value) return;
+
+  try{
+    const response = await fetch(`${API_DEFINITIONS}${currentGuess.value}`);
+    const data = await response.json();
+    if(!data.length) {
+      invalidGuess.value = true;
+      gameMessage.value = "🤔 The word is not in the dictionary. Try again!";
+      return;
+    }
+    
+    const guessArray = currentGuess.value.toUpperCase().split("");
+    guesses.value[guessIndex.value] = [...guessArray];
+    
+    if (currentGuess.value.toUpperCase() === wordToGuess.value) {
+      gameMessage.value = "🎉 Congratulations! You guessed the word!";
+      gameOver.value = true;
+    } else if (guessIndex.value === 5) {
+      gameMessage.value = `😞 Game over! The word was ${wordToGuess.value}.`;
+      gameOver.value = true;
+    }
+    
+    guessIndex.value++;
+    currentGuess.value = "";
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 const getLetterClass = (row, col) => {
@@ -76,4 +132,14 @@ const getLetterClass = (row, col) => {
   if (wordToGuess.value.includes(letter)) return 'bg-yellow-500 text-white border-yellow-500';
   return 'bg-gray-500 text-white border-gray-500';
 };
+
+onMounted(async() => {
+  try{
+    const response = await fetch(`${API_WORD_GENERATOR}?words=1&type=uppercase&length=${WORD_LENGTH}`);
+    const data = await response.json();
+    wordToGuess.value = data[0];
+  } catch (error) {
+    console.error(error);
+  }
+})
 </script>
