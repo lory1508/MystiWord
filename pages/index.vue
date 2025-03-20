@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
+  <div class="flex flex-col items-center justify-center w-full max-w-md gap-2 p-2 mx-auto font-sans text-center">
     <img src="/logo.png" class="w-40" />
-    <div class="flex flex-col items-center justify-center gap-2">
+    <div class="flex flex-col items-center justify-center gap-1">
       <div 
         v-for="(row, rowIndex) in guesses" 
         :key="rowIndex" 
@@ -17,7 +17,7 @@
       </div>
     </div>
     <div class="flex flex-col items-center justify-center w-full gap-2">
-      <div class="relative w-full">
+      <!-- <div class="relative w-full">
         <input 
           v-model="currentGuess" 
           maxlength="5" 
@@ -29,7 +29,17 @@
         <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-2 top-1/2">
           {{ currentGuess.length }}/5
         </span>
+      </div> -->
+      <div class="flex flex-row items-center justify-center w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300 h-11">
+        <div class="w-full translate-x-4">
+          <span v-if="!currentGuess" class="text-zinc-400">Type your guess</span>
+          <span>
+            {{ currentGuess }}
+          </span>
+        </div>
+        <div class="w-6 text-sm text-zinc-400">{{currentGuess.length}}/5</div>
       </div>
+      <Keyboard @onChange="onChange" @onKeyPress="onKeyPress" :input="currentGuess"/>
       <button 
         @click="submitGuess" 
         :disabled="gameOver" 
@@ -63,6 +73,8 @@
 </template>
 
 <script setup>
+import Keyboard from '~/components/Keyboard.vue';
+
 const WORD_LENGTH = 5;
 const API_DEFINITIONS = "https://api.dictionaryapi.dev/api/v2/entries/en/";
 const API_WORD_GENERATOR = "https://random-word-api.vercel.app/api";
@@ -75,6 +87,7 @@ const gameMessage = ref("");
 const gameOver = ref(false);
 const definitions = ref([]);
 const invalidGuess = ref(false);
+const inputKeyboard = ref("");
 
 watch(() => currentGuess.value, (value) => {
   if(invalidGuess.value) {
@@ -94,6 +107,18 @@ watch(() => gameOver.value, async() => {
     console.error(error);
   }
 });
+
+const onChange = (input) => {
+  currentGuess.value = input;
+}
+
+const onKeyPress = (button) => {
+  if(button === "{enter}") submitGuess();
+}
+
+const onInputChange = (input) => {
+  currentGuess.value = input.target.value;
+}
 
 const submitGuess = async() => {
   if (currentGuess.value.length !== 5 || gameOver.value) return;
