@@ -1,53 +1,59 @@
 <template>
-  <div class="flex flex-col items-center justify-center w-full max-w-md gap-2 p-2 mx-auto font-sans text-center">
-    <img src="/logo.png" class="w-40" />
-    <div class="flex flex-col items-center justify-center gap-1">
-      <div 
-        v-for="(row, rowIndex) in guesses" 
-        :key="rowIndex" 
-        class="flex flex-row gap-2 w-fit"
-      >
-        <div 
-          v-for="(letter, colIndex) in row" 
-          :key="colIndex" 
-          :class="['w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold border-2', getLetterClass(rowIndex, colIndex)]"
-        >
-          {{ letter }}
+  <div class="flex flex-col items-center justify-between w-full h-screen max-w-md gap-2 py-2 mx-auto font-sans text-center">
+    <div class="flex flex-col justify-between w-full h-full">
+      <div class="flex flex-col items-center gap-2">
+        <img src="/logo.png" class="w-40" />
+        <div class="flex flex-col items-center gap-1">
+          <div 
+            v-for="(row, rowIndex) in guesses" 
+            :key="rowIndex" 
+            class="flex flex-row gap-2 w-fit"
+          >
+            <div 
+              v-for="(letter, colIndex) in row" 
+              :key="colIndex" 
+              :class="['w-12 h-12 rounded-lg flex items-center justify-center text-xl font-bold border-2', getLetterClass(rowIndex, colIndex)]"
+            >
+              {{ letter }}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-    <div class="flex flex-col items-center justify-center w-full gap-2">
-      <!-- <div class="relative w-full">
-        <input 
-          v-model="currentGuess" 
-          maxlength="5" 
-          placeholder="Type your guess" 
-          @keyup.enter="submitGuess" 
-          :disabled="gameOver" 
-          class="w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300" 
-        />
-        <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-2 top-1/2">
-          {{ currentGuess.length }}/5
-        </span>
-      </div> -->
-      <div class="flex flex-row items-center justify-center w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300 h-11">
-        <div class="w-full translate-x-4">
-          <span v-if="!currentGuess" class="text-zinc-400">Type your guess</span>
-          <span>
-            {{ currentGuess }}
+      <div class="bottom-0 flex flex-col items-center justify-center w-full gap-2">
+        <!-- <div class="relative w-full">
+          <input 
+            v-model="currentGuess" 
+            maxlength="5" 
+            placeholder="Type your guess" 
+            @keyup.enter="submitGuess" 
+            :disabled="gameOver" 
+            class="w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300" 
+          />
+          <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-2 top-1/2">
+            {{ currentGuess.length }}/5
           </span>
+        </div> -->
+        <div class="flex flex-col w-full gap-2 px-4">
+          <div class="flex flex-row items-center justify-center w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300 h-11">
+            <div class="w-full translate-x-4">
+              <span v-if="!currentGuess" class="text-zinc-400">Type your guess</span>
+              <span>
+                {{ currentGuess }}
+              </span>
+            </div>
+            <div class="w-6 text-sm text-zinc-400">{{currentGuess.length}}/5</div>
+          </div>
+          <button 
+            @click="submitGuess" 
+            :disabled="gameOver" 
+            class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            Submit
+          </button>
         </div>
-        <div class="w-6 text-sm text-zinc-400">{{currentGuess.length}}/5</div>
+        <Keyboard @onChange="onChange" @onKeyPress="onKeyPress" :input="currentGuess"/>
+        <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
       </div>
-      <Keyboard @onChange="onChange" @onKeyPress="onKeyPress" :input="currentGuess"/>
-      <button 
-        @click="submitGuess" 
-        :disabled="gameOver" 
-        class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-      >
-        Submit
-      </button>
-      <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
     </div>
   </div>
   <div v-if="gameMessage" class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
