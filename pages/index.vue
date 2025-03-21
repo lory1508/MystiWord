@@ -51,17 +51,22 @@
             Submit
           </button>
         </div>
-        <Keyboard @onChange="onChange" @onKeyPress="onKeyPress" :input="currentGuess"/>
+        <Keyboard 
+          @onChange="onChange" 
+          @onKeyPress="onKeyPress" 
+          :input="currentGuess"
+          ref="keyboardRef"
+        />
         <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
       </div>
     </div>
   </div>
   <div v-if="gameMessage" class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
-    <p class="mt-4 text-lg font-semibold">
+    <div class="mt-4 text-lg font-semibold">
       <div>
         {{ gameMessage }}
       </div>
-    </p>
+    </div>
     <div class="flex flex-col justify-start gap-2 p-2 mt-2 font-sans rounded-md text-start bg-zinc-100">
       <ol>
         <li v-for="(definition, index) in definitions" :key="`definition_${index}`" class="flex flex-col gap-2 mb-8">
@@ -93,7 +98,12 @@ const gameMessage = ref("");
 const gameOver = ref(false);
 const definitions = ref([]);
 const invalidGuess = ref(false);
-const inputKeyboard = ref("");
+
+const correctLetters = ref([]);
+const wrongLetters = ref([]);
+const presentLetters = ref([]);
+
+const keyboardRef = ref(null);
 
 watch(() => currentGuess.value, (value) => {
   if(invalidGuess.value) {
@@ -154,14 +164,27 @@ const submitGuess = async() => {
   } catch (error) {
     console.error(error);
   }
+  keyboardRef.value.defineClasses(correctLetters.value, presentLetters.value, wrongLetters.value);
 };
 
 const getLetterClass = (row, col) => {
   const letter = guesses.value[row][col];
-  if (!letter) return 'border-gray-300';
-  if (letter === wordToGuess.value[col]) return 'bg-green-500 text-white border-green-500';
-  if (wordToGuess.value.includes(letter)) return 'bg-yellow-500 text-white border-yellow-500';
-  return 'bg-gray-500 text-white border-gray-500';
+  if (!letter) {
+    return 'border-gray-300'
+  };
+  if (letter === wordToGuess.value[col]) {
+    correctLetters.value.push(letter);
+    return 'bg-green-500 text-white border-green-500'
+  };
+  if (wordToGuess.value.includes(letter)) {
+    // console.log(wordToGuess.value, letter);
+    presentLetters.value.push(letter);
+    // presentLetters.value = presentLetters.value.filter(letter => !correctLetters.value.includes(letter));
+    // console.log(presentLetters.value);
+    return 'bg-yellow-500 text-white border-yellow-500'
+  };
+  wrongLetters.value.push(letter);
+  return 'bg-gray-500 text-white border-gray-500'
 };
 
 onMounted(async() => {

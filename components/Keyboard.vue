@@ -15,6 +15,15 @@ const props = defineProps( {
   },
   input: {
     type: String
+  // },
+  // correctLetters: {
+  //   type: Array
+  // },
+  // presentLetters: {
+  //   type: Array
+  // },
+  // wrongLetters: {
+  //   type: Array
   }
 })
 const emit = defineEmits(["onChange", "onKeyPress"]);
@@ -28,25 +37,11 @@ onMounted(() => {
     maxLength: 5,
     layout: {
       'default': [
-        'q w e r t y u i o p',
-        'a s d f g h j k l',
-        '{bksp} z x c v b n m {enter}',
+        'Q W E R T Y U I O P',
+        'A S D F G H J K L',
+        '{bksp} Z X C V B N M {enter}',
       ]
-    },
-    buttonTheme: [
-      {
-        class: "correct", // Green for correct position
-        buttons: "A S D"  // Example letters, update dynamically
-      },
-      {
-        class: "present", // Yellow for wrong position
-        buttons: "E R T"
-      },
-      {
-        class: "absent", // Dark grey for not in the word
-        buttons: "Y U I"
-      }
-    ]
+    }
   });
 })
 
@@ -58,13 +53,6 @@ const updateKeyboardColors = (letterStatuses) => {
 
   keyboard.setOptions({ buttonTheme });
 }
-
-const letterClasses = {
-  'correct': "bg-green-500 text-white",
-  'wrong-place': "bg-yellow-500 text-white",
-  'wrong': "bg-gray-700 text-white"
-};
-
 
 const onChange = (input) => {
   emit("onChange", input);
@@ -88,7 +76,32 @@ const handleShift = () => {
   });
 }
 
+const defineClasses = (correctLetters, presentLetters, wrongLetters) => {
+  keyboard.value.addButtonTheme(correctLetters.join(" "), "correct");
+  keyboard.value.addButtonTheme(presentLetters.join(" "), "present");
+  keyboard.value.addButtonTheme(wrongLetters.join(" "), "wrong");
+  console.log(keyboard.value.options);
+}
+
 watch(() => props.input, (input) => {
   keyboard.value.setInput(input);
 })
+
+defineExpose({
+  defineClasses
+})
 </script>
+
+<style>
+.correct {
+  @apply !bg-green-500 !text-white;
+}
+
+.present {
+  @apply !bg-yellow-500 !text-white;
+}
+
+.wrong {
+  @apply !bg-gray-700 !text-white;
+}
+</style>
