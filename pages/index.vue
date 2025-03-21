@@ -20,43 +20,36 @@
         </div>
       </div>
       <div class="bottom-0 flex flex-col items-center justify-center w-full gap-2">
-        <!-- <div class="relative w-full">
+        <div class="relative w-full">
           <input 
             v-model="currentGuess" 
             maxlength="5" 
             placeholder="Type your guess" 
+            inputmode="none"
             @keyup.enter="submitGuess" 
             :disabled="gameOver" 
             class="w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300" 
+            ref="inputRef"
+            autofocus
           />
           <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-2 top-1/2">
             {{ currentGuess.length }}/5
           </span>
-        </div> -->
-        <div class="flex flex-col w-full gap-2 px-4">
-          <div class="flex flex-row items-center justify-center w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300 h-11">
-            <div class="w-full translate-x-4">
-              <span v-if="!currentGuess" class="text-zinc-400">Type your guess</span>
-              <span>
-                {{ currentGuess }}
-              </span>
-            </div>
-            <div class="w-6 text-sm text-zinc-400">{{currentGuess.length}}/5</div>
-          </div>
-          <button 
-            @click="submitGuess" 
-            :disabled="gameOver" 
-            class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            Submit
-          </button>
-        </div>
+        </div> 
         <Keyboard 
-          @onChange="onChange" 
-          @onKeyPress="onKeyPress" 
-          :input="currentGuess"
-          ref="keyboardRef"
+          :correct-letters="correctLetters"
+          :present-letters="presentLetters"
+          :wrong-letters="wrongLetters"          
+          @update="updateWord" 
+          ref="keyboardRef" 
         />
+        <button 
+          @click="submitGuess" 
+          :disabled="gameOver" 
+          class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          Submit
+        </button>
         <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
       </div>
     </div>
@@ -98,12 +91,13 @@ const gameMessage = ref("");
 const gameOver = ref(false);
 const definitions = ref([]);
 const invalidGuess = ref(false);
-
+const inputKeyboard = ref("");
 const correctLetters = ref([]);
 const wrongLetters = ref([]);
 const presentLetters = ref([]);
 
 const keyboardRef = ref(null);
+const inputRef = ref(null);
 
 watch(() => currentGuess.value, (value) => {
   if(invalidGuess.value) {
@@ -124,17 +118,41 @@ watch(() => gameOver.value, async() => {
   }
 });
 
-const onChange = (input) => {
-  currentGuess.value = input;
-}
+watch(() => guesses.value, (newGuesses) => {
+  console.log(newGuesses);
+  correctLetters.value = [];
+  presentLetters.value = [];
+  wrongLetters.value = [];
 
-const onKeyPress = (button) => {
-  if(button === "{enter}") submitGuess();
-}
+  newGuesses.forEach((guess) => {
+    guess.forEach((letter, index) => {
+      if (letter) {
+        if (letter === wordToGuess.value[index]) {
+          correctLetters.value.push(letter);
+          const presentIndex = presentLetters.value.indexOf(letter);
+          if (presentIndex !== -1) {
+            presentLetters.value.splice(presentIndex, 1);
+          }
+        } else if (wordToGuess.value.includes(letter) && !correctLetters.value.includes(letter)) {
+          if (!presentLetters.value.includes(letter)) {
+            presentLetters.value.push(letter);
+          }
+        } else if (!correctLetters.value.includes(letter) && !presentLetters.value.includes(letter)) {
+          if (!wrongLetters.value.includes(letter)) {
+            wrongLetters.value.push(letter);
+          }
+        }
+      }
+    });
+  });
+},
+{
+  deep: true
+});
 
-const onInputChange = (input) => {
-  currentGuess.value = input.target.value;
-}
+const updateWord = (word) => {
+  currentGuess.value = word;
+};
 
 const submitGuess = async() => {
   if (currentGuess.value.length !== 5 || gameOver.value) return;
@@ -144,7 +162,7 @@ const submitGuess = async() => {
     const data = await response.json();
     if(!data.length) {
       invalidGuess.value = true;
-      gameMessage.value = "🤔 The word is not in the dictionary. Try again!";
+      gameMessage.value = "🤔 This word is not in the dictionary. Try again!";
       return;
     }
     
@@ -159,8 +177,11 @@ const submitGuess = async() => {
       gameOver.value = true;
     }
     
+    
     guessIndex.value++;
     currentGuess.value = "";
+    keyboardRef.value.word = "";
+    inputRef.value.focus();
   } catch (error) {
     console.error(error);
   }

@@ -1,95 +1,98 @@
 <template>
-  <div 
-    :class="keyboardClass"
-  ></div>
+  <div class="flex flex-col">
+    <div class="flex flex-row">
+      <div 
+        v-for="(key, index) in firstRow" 
+        :key="`firstRow_${index}`" 
+        class="flex flex-col items-center justify-center w-12 h-12 m-1 font-semibold border border-gray-300 rounded-md cursor-pointer"
+        :class="{
+          'bg-green-200 text-green-600': correctLetters.includes(key),
+          'bg-amber-200 text-amber-600': presentLetters.includes(key),
+          'bg-zinc-200 text-zinc-600': wrongLetters.includes(key),
+        }"
+        @click="addLetter(key)"
+      >
+        <span>
+          {{ key }}
+        </span>
+      </div>
+    </div>
+    <div class="flex flex-row justify-center">
+      <div 
+        v-for="(key, index) in secondRow" 
+        :key="`secondRow_${index}`" 
+        class="flex flex-col items-center justify-center w-12 h-12 m-1 font-semibold border border-gray-300 rounded-md cursor-pointer"
+        :class="{
+        'bg-green-200 text-green-600': correctLetters.includes(key),
+        'bg-amber-200 text-amber-600': presentLetters.includes(key),
+        'bg-zinc-200 text-zinc-600': wrongLetters.includes(key),
+        }"
+        @click="addLetter(key)"
+      >
+        <span>
+          {{ key }}
+        </span>
+      </div>
+    </div>
+    <div class="flex flex-row justify-center">
+      <div 
+        v-for="(key, index) in thirdRow" 
+        :key="`thirdRow_${index}`" 
+        class="flex flex-col items-center justify-center w-12 h-12 m-1 font-semibold border border-gray-300 rounded-md cursor-pointer"
+        :class="{
+        'bg-green-200 text-green-600': correctLetters.includes(key),
+        'bg-amber-200 text-amber-600': presentLetters.includes(key),
+        'bg-zinc-200 text-zinc-600': wrongLetters.includes(key),
+        }"
+        @click="addLetter(key)"
+      >
+        <span 
+          v-if="key != '{backspace}'"
+        >
+          {{ key }}
+        </span>
+        <Icon v-else icon="ic:round-backspace" height="24" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import Keyboard from "simple-keyboard";
-import "simple-keyboard/build/css/index.css";
+import { Icon } from '@iconify/vue';
 
-const props = defineProps( {
-  keyboardClass: {
-    default: "simple-keyboard",
-    type: String
+const props = defineProps({
+  correctLetters: {
+    type: Array,
+    default: () => []
   },
-  input: {
-    type: String
-  // },
-  // correctLetters: {
-  //   type: Array
-  // },
-  // presentLetters: {
-  //   type: Array
-  // },
-  // wrongLetters: {
-  //   type: Array
+  wrongLetters: {
+    type: Array,
+    default: () => []
+  },
+  presentLetters: {
+    type: Array,
+    default: () => []
   }
-})
-const emit = defineEmits(["onChange", "onKeyPress"]);
+});
+const emit = defineEmits(["update"]);
 
-const keyboard = ref(null);
+const firstRow = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
+const secondRow = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
+const thirdRow = ["Z", "X", "C", "V", "B", "N", "M", "{backspace}"];
 
-onMounted(() => {
-  keyboard.value = new Keyboard(props.keyboardClass, {
-    onChange: onChange,
-    onKeyPress: onKeyPress,
-    maxLength: 5,
-    layout: {
-      'default': [
-        'Q W E R T Y U I O P',
-        'A S D F G H J K L',
-        '{bksp} Z X C V B N M {enter}',
-      ]
-    }
-  });
-})
+const word = ref("");
 
-const updateKeyboardColors = (letterStatuses) => {
-  const buttonTheme = Object.entries(letterStatuses).map(([letter, status]) => ({
-    class: status, // Assigns Tailwind classes dynamically
-    buttons: letter.toUpperCase()
-  }));
+const addLetter = (letter) => {
+  if (letter === "{backspace}") {
+    word.value = word.value.slice(0, -1);
+  } else {
+    if(word.value.length >= 5) return;
+    word.value += letter;
+  }
+  emit("update", word.value);
+};
 
-  keyboard.setOptions({ buttonTheme });
-}
-
-const onChange = (input) => {
-  emit("onChange", input);
-}
-
-const onKeyPress = (button) => {
-  emit("onKeyPress", button);
-
-  /**
-   * If you want to handle the shift and caps lock buttons
-   */
-  if (button === "{shift}" || button === "{lock}") handleShift();
-}
-
-const handleShift = () => {
-  let currentLayout = keyboard.value.options.layoutName;
-  let shiftToggle = currentLayout === "default" ? "shift" : "default";
-
-  keyboard.value.setOptions({
-    layoutName: shiftToggle
-  });
-}
-
-const defineClasses = (correctLetters, presentLetters, wrongLetters) => {
-  keyboard.value.addButtonTheme(correctLetters.join(" "), "correct");
-  keyboard.value.addButtonTheme(presentLetters.join(" "), "present");
-  keyboard.value.addButtonTheme(wrongLetters.join(" "), "wrong");
-  console.log(keyboard.value.options);
-}
-
-watch(() => props.input, (input) => {
-  keyboard.value.setInput(input);
-})
-
-defineExpose({
-  defineClasses
-})
+defineExpose({ word });
 </script>
 
 <style>
