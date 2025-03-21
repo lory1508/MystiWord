@@ -36,7 +36,13 @@
             {{ currentGuess.length }}/5
           </span>
         </div> 
-        <Keyboard v-model="inputKeyboard" @update="updateWord" ref="keyboardRef" />
+        <Keyboard 
+          :correct-letters="correctLetters"
+          :present-letters="presentLetters"
+          :wrong-letters="wrongLetters"          
+          @update="updateWord" 
+          ref="keyboardRef" 
+        />
         <button 
           @click="submitGuess" 
           :disabled="gameOver" 
@@ -86,6 +92,9 @@ const gameOver = ref(false);
 const definitions = ref([]);
 const invalidGuess = ref(false);
 const inputKeyboard = ref("");
+const correctLetters = ref([]);
+const wrongLetters = ref([]);
+const presentLetters = ref([]);
 
 const keyboardRef = ref(null);
 const inputRef = ref(null);
@@ -107,6 +116,38 @@ watch(() => gameOver.value, async() => {
   } catch (error) {
     console.error(error);
   }
+});
+
+watch(() => guesses.value, (newGuesses) => {
+  console.log(newGuesses);
+  correctLetters.value = [];
+  presentLetters.value = [];
+  wrongLetters.value = [];
+
+  newGuesses.forEach((guess) => {
+    guess.forEach((letter, index) => {
+      if (letter) {
+        if (letter === wordToGuess.value[index]) {
+          correctLetters.value.push(letter);
+          const presentIndex = presentLetters.value.indexOf(letter);
+          if (presentIndex !== -1) {
+            presentLetters.value.splice(presentIndex, 1);
+          }
+        } else if (wordToGuess.value.includes(letter) && !correctLetters.value.includes(letter)) {
+          if (!presentLetters.value.includes(letter)) {
+            presentLetters.value.push(letter);
+          }
+        } else if (!correctLetters.value.includes(letter) && !presentLetters.value.includes(letter)) {
+          if (!wrongLetters.value.includes(letter)) {
+            wrongLetters.value.push(letter);
+          }
+        }
+      }
+    });
+  });
+},
+{
+  deep: true
 });
 
 const updateWord = (word) => {
@@ -135,6 +176,7 @@ const submitGuess = async() => {
       gameMessage.value = `😞 Game over! The word was ${wordToGuess.value}.`;
       gameOver.value = true;
     }
+    
     
     guessIndex.value++;
     currentGuess.value = "";
