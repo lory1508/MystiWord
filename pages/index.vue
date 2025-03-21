@@ -20,7 +20,7 @@
         </div>
       </div>
       <div class="bottom-0 flex flex-col items-center justify-center w-full gap-2">
-        <div class="relative w-full">
+        <div class="relative w-full p-2">
           <input 
             v-model="currentGuess" 
             maxlength="5" 
@@ -32,7 +32,7 @@
             ref="inputRef"
             autofocus
           />
-          <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-2 top-1/2">
+          <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-4 top-1/2">
             {{ currentGuess.length }}/5
           </span>
         </div> 
@@ -43,13 +43,15 @@
           @update="updateWord" 
           ref="keyboardRef" 
         />
-        <button 
-          @click="submitGuess" 
-          :disabled="gameOver" 
-          class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-        >
-          Submit
-        </button>
+        <div class="w-full px-2"> 
+          <button 
+            @click="submitGuess" 
+            :disabled="gameOver" 
+            class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+          >
+            Submit
+          </button>
+        </div>
         <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
       </div>
     </div>

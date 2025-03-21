@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col w-full">
     <div class="flex flex-row">
       <div 
         v-for="(key, index) in firstRow" 
