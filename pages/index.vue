@@ -1,5 +1,27 @@
 <template>
-  <div class="flex flex-col items-center justify-between w-full h-screen max-w-md gap-2 py-2 mx-auto font-sans text-center">
+  <Modal ref="modalRef" @close="closeModal">
+    <div class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
+      <div class="mt-4 text-lg font-semibold">
+        <div>
+          {{ gameMessage }}
+        </div>
+      </div>
+      <div v-if="definitions.length" class="flex flex-col justify-start gap-2 p-2 mt-2 font-sans rounded-md text-start bg-zinc-100">
+        <ol>
+          <li v-for="(definition, index) in definitions" :key="`definition_${index}`" class="flex flex-col gap-2 mb-8">
+            <span class="font-mono">
+              - {{ definition.definition }}</span>
+            <span class="text-gray-500">{{ definition.example }}</span>
+            <div v-if="definition.synonyms.length">
+              <span class="font-bold">Synonyms:</span>
+              <span>{{ definition.synonyms.join(", ") }}</span>
+            </div>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </Modal>
+  <div class="flex flex-col items-center justify-between w-full h-screen max-w-xl gap-2 py-2 mx-auto font-sans text-center">
     <div class="flex flex-col justify-between w-full h-full">
       <div class="flex flex-col items-center gap-2">
         <img src="/logo.png" class="w-40" />
@@ -56,30 +78,11 @@
       </div>
     </div>
   </div>
-  <div v-if="gameMessage" class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
-    <div class="mt-4 text-lg font-semibold">
-      <div>
-        {{ gameMessage }}
-      </div>
-    </div>
-    <div class="flex flex-col justify-start gap-2 p-2 mt-2 font-sans rounded-md text-start bg-zinc-100">
-      <ol>
-        <li v-for="(definition, index) in definitions" :key="`definition_${index}`" class="flex flex-col gap-2 mb-8">
-          <span class="font-mono">
-            - {{ definition.definition }}</span>
-          <span class="text-gray-500">{{ definition.example }}</span>
-          <div v-if="definition.synonyms.length">
-            <span class="font-bold">Synonyms:</span>
-            <span>{{ definition.synonyms.join(", ") }}</span>
-          </div>
-        </li>
-      </ol>
-    </div>
-  </div>
 </template>
 
 <script setup>
 import Keyboard from '~/components/Keyboard.vue';
+import Modal from '~/components/Modal.vue';
 
 const WORD_LENGTH = 5;
 const API_DEFINITIONS = "https://api.dictionaryapi.dev/api/v2/entries/en/";
@@ -100,6 +103,7 @@ const presentLetters = ref([]);
 
 const keyboardRef = ref(null);
 const inputRef = ref(null);
+const modalRef = ref(null);
 
 watch(() => currentGuess.value, (value) => {
   if(invalidGuess.value) {
@@ -152,6 +156,12 @@ watch(() => guesses.value, (newGuesses) => {
   deep: true
 });
 
+const closeModal = () => {
+  modalRef.value.closeModal();
+  inputRef.value.focus();
+  definitions.value = [];
+};
+
 const updateWord = (word) => {
   currentGuess.value = word;
 };
@@ -164,7 +174,9 @@ const submitGuess = async() => {
     const data = await response.json();
     if(!data.length) {
       invalidGuess.value = true;
+      modalRef.value.openModal();
       gameMessage.value = "🤔 This word is not in the dictionary. Try again!";
+      inputRef.value.focus();
       return;
     }
     
@@ -174,11 +186,12 @@ const submitGuess = async() => {
     if (currentGuess.value.toUpperCase() === wordToGuess.value) {
       gameMessage.value = "🎉 Congratulations! You guessed the word!";
       gameOver.value = true;
+      modalRef.value.openModal();
     } else if (guessIndex.value === 5) {
       gameMessage.value = `😞 Game over! The word was ${wordToGuess.value}.`;
       gameOver.value = true;
+      modalRef.value.openModal();
     }
-    
     
     guessIndex.value++;
     currentGuess.value = "";
@@ -187,7 +200,6 @@ const submitGuess = async() => {
   } catch (error) {
     console.error(error);
   }
-  keyboardRef.value.defineClasses(correctLetters.value, presentLetters.value, wrongLetters.value);
 };
 
 const getLetterClass = (row, col) => {
@@ -196,17 +208,11 @@ const getLetterClass = (row, col) => {
     return 'border-gray-300'
   };
   if (letter === wordToGuess.value[col]) {
-    correctLetters.value.push(letter);
     return 'bg-green-500 text-white border-green-500'
   };
   if (wordToGuess.value.includes(letter)) {
-    // console.log(wordToGuess.value, letter);
-    presentLetters.value.push(letter);
-    // presentLetters.value = presentLetters.value.filter(letter => !correctLetters.value.includes(letter));
-    // console.log(presentLetters.value);
     return 'bg-yellow-500 text-white border-yellow-500'
   };
-  wrongLetters.value.push(letter);
   return 'bg-gray-500 text-white border-gray-500'
 };
 
