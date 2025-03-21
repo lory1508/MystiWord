@@ -20,48 +20,40 @@
         </div>
       </div>
       <div class="bottom-0 flex flex-col items-center justify-center w-full gap-2">
-        <!-- <div class="relative w-full">
+        <div class="relative w-full">
           <input 
             v-model="currentGuess" 
             maxlength="5" 
             placeholder="Type your guess" 
+            inputmode="none"
             @keyup.enter="submitGuess" 
             :disabled="gameOver" 
             class="w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300" 
+            ref="inputRef"
+            autofocus
           />
           <span class="absolute text-sm text-gray-500 transform -translate-y-1/2 right-2 top-1/2">
             {{ currentGuess.length }}/5
           </span>
-        </div> -->
-        <div class="flex flex-col w-full gap-2 px-4">
-          <div class="flex flex-row items-center justify-center w-full p-2 text-lg text-center border rounded-md disabled:bg-gray-300 h-11">
-            <div class="w-full translate-x-4">
-              <span v-if="!currentGuess" class="text-zinc-400">Type your guess</span>
-              <span>
-                {{ currentGuess }}
-              </span>
-            </div>
-            <div class="w-6 text-sm text-zinc-400">{{currentGuess.length}}/5</div>
-          </div>
-          <button 
-            @click="submitGuess" 
-            :disabled="gameOver" 
-            class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            Submit
-          </button>
-        </div>
-        <Keyboard @onChange="onChange" @onKeyPress="onKeyPress" :input="currentGuess"/>
+        </div> 
+        <Keyboard v-model="inputKeyboard" @update="updateWord" ref="keyboardRef" />
+        <button 
+          @click="submitGuess" 
+          :disabled="gameOver" 
+          class="w-full py-2 font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-400"
+        >
+          Submit
+        </button>
         <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
       </div>
     </div>
   </div>
   <div v-if="gameMessage" class="flex flex-col items-center justify-center max-w-md gap-4 p-4 mx-auto font-sans text-center w-fit">
-    <p class="mt-4 text-lg font-semibold">
+    <div class="mt-4 text-lg font-semibold">
       <div>
         {{ gameMessage }}
       </div>
-    </p>
+    </div>
     <div class="flex flex-col justify-start gap-2 p-2 mt-2 font-sans rounded-md text-start bg-zinc-100">
       <ol>
         <li v-for="(definition, index) in definitions" :key="`definition_${index}`" class="flex flex-col gap-2 mb-8">
@@ -95,6 +87,9 @@ const definitions = ref([]);
 const invalidGuess = ref(false);
 const inputKeyboard = ref("");
 
+const keyboardRef = ref(null);
+const inputRef = ref(null);
+
 watch(() => currentGuess.value, (value) => {
   if(invalidGuess.value) {
     invalidGuess.value = false;
@@ -114,17 +109,9 @@ watch(() => gameOver.value, async() => {
   }
 });
 
-const onChange = (input) => {
-  currentGuess.value = input;
-}
-
-const onKeyPress = (button) => {
-  if(button === "{enter}") submitGuess();
-}
-
-const onInputChange = (input) => {
-  currentGuess.value = input.target.value;
-}
+const updateWord = (word) => {
+  currentGuess.value = word;
+};
 
 const submitGuess = async() => {
   if (currentGuess.value.length !== 5 || gameOver.value) return;
@@ -134,7 +121,7 @@ const submitGuess = async() => {
     const data = await response.json();
     if(!data.length) {
       invalidGuess.value = true;
-      gameMessage.value = "🤔 The word is not in the dictionary. Try again!";
+      gameMessage.value = "🤔 This word is not in the dictionary. Try again!";
       return;
     }
     
@@ -151,6 +138,8 @@ const submitGuess = async() => {
     
     guessIndex.value++;
     currentGuess.value = "";
+    keyboardRef.value.word = "";
+    inputRef.value.focus();
   } catch (error) {
     console.error(error);
   }

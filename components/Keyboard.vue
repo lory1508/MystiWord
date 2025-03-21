@@ -1,94 +1,61 @@
 <template>
-  <div 
-    :class="keyboardClass"
-  ></div>
+  <div class="flex flex-col">
+    <div class="flex flex-row">
+      <div 
+        v-for="(key, index) in firstRow" 
+        :key="`firstRow_${index}`" 
+        class="flex flex-col items-center justify-center w-12 h-12 m-1 border border-gray-300 rounded-md cursor-pointer"
+        @click="addLetter(key)"
+      >
+        {{ key }}
+      </div>
+    </div>
+    <div class="flex flex-row justify-center">
+      <div 
+        v-for="(key, index) in secondRow" 
+        :key="`secondRow_${index}`" 
+        class="flex flex-col items-center justify-center w-12 h-12 m-1 border border-gray-300 rounded-md cursor-pointer"
+        @click="addLetter(key)"
+      >
+        {{ key }}
+      </div>
+    </div>
+    <div class="flex flex-row justify-center">
+      <div 
+        v-for="(key, index) in thirdRow" 
+        :key="`thirdRow_${index}`" 
+        class="flex flex-col items-center justify-center w-12 h-12 m-1 border border-gray-300 rounded-md cursor-pointer"
+        @click="addLetter(key)"
+      >
+        <span v-if="key != '{backspace}'">
+          {{ key }}
+        </span>
+        <Icon v-else icon="ic:round-backspace" height="24" />
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import Keyboard from "simple-keyboard";
-import "simple-keyboard/build/css/index.css";
+import { Icon } from '@iconify/vue';
 
-const props = defineProps( {
-  keyboardClass: {
-    default: "simple-keyboard",
-    type: String
-  },
-  input: {
-    type: String
+const emit = defineEmits(["update"]);
+
+const firstRow = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
+const secondRow = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
+const thirdRow = ["Z", "X", "C", "V", "B", "N", "M", "{backspace}"];
+
+const word = ref("");
+
+const addLetter = (letter) => {
+  if (letter === "{backspace}") {
+    word.value = word.value.slice(0, -1);
+  } else {
+    if(word.value.length >= 5) return;
+    word.value += letter;
   }
-})
-const emit = defineEmits(["onChange", "onKeyPress"]);
-
-const keyboard = ref(null);
-
-onMounted(() => {
-  keyboard.value = new Keyboard(props.keyboardClass, {
-    onChange: onChange,
-    onKeyPress: onKeyPress,
-    maxLength: 5,
-    layout: {
-      'default': [
-        'q w e r t y u i o p',
-        'a s d f g h j k l',
-        '{bksp} z x c v b n m {enter}',
-      ]
-    },
-    buttonTheme: [
-      {
-        class: "correct", // Green for correct position
-        buttons: "A S D"  // Example letters, update dynamically
-      },
-      {
-        class: "present", // Yellow for wrong position
-        buttons: "E R T"
-      },
-      {
-        class: "absent", // Dark grey for not in the word
-        buttons: "Y U I"
-      }
-    ]
-  });
-})
-
-const updateKeyboardColors = (letterStatuses) => {
-  const buttonTheme = Object.entries(letterStatuses).map(([letter, status]) => ({
-    class: status, // Assigns Tailwind classes dynamically
-    buttons: letter.toUpperCase()
-  }));
-
-  keyboard.setOptions({ buttonTheme });
-}
-
-const letterClasses = {
-  'correct': "bg-green-500 text-white",
-  'wrong-place': "bg-yellow-500 text-white",
-  'wrong': "bg-gray-700 text-white"
+  emit("update", word.value);
 };
 
-
-const onChange = (input) => {
-  emit("onChange", input);
-}
-
-const onKeyPress = (button) => {
-  emit("onKeyPress", button);
-
-  /**
-   * If you want to handle the shift and caps lock buttons
-   */
-  if (button === "{shift}" || button === "{lock}") handleShift();
-}
-
-const handleShift = () => {
-  let currentLayout = keyboard.value.options.layoutName;
-  let shiftToggle = currentLayout === "default" ? "shift" : "default";
-
-  keyboard.value.setOptions({
-    layoutName: shiftToggle
-  });
-}
-
-watch(() => props.input, (input) => {
-  keyboard.value.setInput(input);
-})
+defineExpose({ word });
 </script>
