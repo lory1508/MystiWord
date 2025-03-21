@@ -74,7 +74,7 @@
             Submit
           </button>
         </div>
-        <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="underline underline-offset-2">Lorenzo Galassi</a></small>
+        <small class="text-zinc-400">Developed by <a href="https://github.com/lory1508" target="_blank" class="text-purple-600 underline underline-offset-2">Lorenzo Galassi</a></small>
       </div>
     </div>
   </div>
@@ -96,7 +96,6 @@ const gameMessage = ref("");
 const gameOver = ref(false);
 const definitions = ref([]);
 const invalidGuess = ref(false);
-const inputKeyboard = ref("");
 const correctLetters = ref([]);
 const wrongLetters = ref([]);
 const presentLetters = ref([]);
