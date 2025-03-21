@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col w-full">
-    <div class="flex flex-row">
+    <div class="flex flex-row justify-center">
       <div 
         v-for="(key, index) in firstRow" 
         :key="`firstRow_${index}`" 
@@ -46,12 +46,15 @@
         }"
         @click="addLetter(key)"
       >
-        <span 
-          v-if="key != '{backspace}'"
-        >
+        <span>
           {{ key }}
         </span>
-        <Icon v-else icon="ic:round-backspace" height="24" />
+      </div>
+      <div
+        class="flex flex-col items-center justify-center w-24 h-12 m-1 font-semibold border border-gray-300 rounded-md cursor-pointer"
+        @click="addLetter('{backspace}')"
+      >
+        <Icon icon="ic:round-backspace" height="24" />
       </div>
     </div>
   </div>
@@ -78,7 +81,7 @@ const emit = defineEmits(["update"]);
 
 const firstRow = ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"];
 const secondRow = ["A", "S", "D", "F", "G", "H", "J", "K", "L"];
-const thirdRow = ["Z", "X", "C", "V", "B", "N", "M", "{backspace}"];
+const thirdRow = ["Z", "X", "C", "V", "B", "N", "M"];
 
 const word = ref("");
 
